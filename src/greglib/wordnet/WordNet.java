@@ -166,7 +166,7 @@ public class WordNet {
         posMorphReplacements.put("n", nounMorphReplacements);
         posMorphReplacements.put("v", verbMorphReplacements);
         posMorphReplacements.put("a", adjMorphReplacements);
-        posMorphReplacements.put("r", new HashMap<String, String>());
+        posMorphReplacements.put("r", new HashMap<>());
     }
 
     private Map<String, Map<String, Lemma>> lemmasByPos;
@@ -344,12 +344,12 @@ public class WordNet {
 
         String[] poses = {"n", "a", "v", "r"};
         for(String pos : poses) {
-            lemmasByPos.put(pos, new HashMap<String, Lemma>());
+            lemmasByPos.put(pos, new HashMap<>());
         }
 
         // Load up all the synset offsets from all parts of speech before doing anything else
         for(String pos : poses) {
-            posOffsetSynsetMap.put(pos, new HashMap<String, Synset>());
+            posOffsetSynsetMap.put(pos, new HashMap<>());
             Path dataFile = wordNetDict.resolve("data." + shortLongPos.get(pos));
             BufferedReader reader = new BufferedReader(new FileReader(dataFile.toFile()));
             String line;
@@ -724,6 +724,7 @@ public class WordNet {
         }
         return entropy / Math.log(2);
     }
+
 
     /**
      * Provide min/max entropy and an output file. Callable from script

@@ -2,6 +2,7 @@ package greglib.util;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by gpfinley on 10/27/16.
@@ -15,8 +16,12 @@ public class Counter<T> implements Map<T, Integer> {
     }
 
     public Counter(Collection<T> itemsToCount) {
-        counts = new HashMap<>();
-        itemsToCount.stream().forEach(this::increment);
+        this(itemsToCount.stream());
+    }
+
+    public Counter(Stream<T> itemsToCount) {
+        this();
+        itemsToCount.forEach(this::increment);
     }
 
     public int increment(T t) {

@@ -63,21 +63,42 @@ public class PhraseGraph {
         Phrase lastEligiblePhrase = null;
         Map<String, Object> lookup = graph;
         int i;
-        for (i = index; i < words.size(); i++) {
-            String thisWord = words.get(i);
+        for (i = index; i <= words.size(); i++) {
             lastEligiblePhrase = (Phrase) lookup.getOrDefault(null, lastEligiblePhrase);
-            if (lookup.containsKey(thisWord)) {
-                lookup = (Map) lookup.get(words.get(i));
-            } else {
-                break;
+            if (i < words.size()) {
+                String thisWord = words.get(i);
+                if (lookup.containsKey(thisWord)) {
+                    lookup = (Map) lookup.get(words.get(i));
+                } else {
+                    break;
+                }
             }
         }
         return lastEligiblePhrase;
     }
 
+    public static void main(String[] args) {
+        Phrase[] phrases = new Phrase[]{
+            new Phrase("one"),
+            new Phrase("two"),
+                new Phrase("two three"),
+            new Phrase("three")
+        };
+        PhraseGraph pg = new PhraseGraph(Arrays.asList(phrases));
+        System.out.println(pg.graph);
+        System.out.println(pg.getLongestPhraseFrom("one two three".split(" "), 0));
+        System.out.println(pg.getLongestPhraseFrom("one two three".split(" "), 1));
+        System.out.println(pg.getLongestPhraseFrom("one two three".split(" "), 2));
+    }
+
     // todo: is this as quick as just copying the above code for arrays?
     public Phrase getLongestPhraseFrom(String[] words, int index) {
         return getLongestPhraseFrom(Arrays.asList(words), index);
+    }
+
+    @Override
+    public String toString() {
+        return graph.toString();
     }
 
 }

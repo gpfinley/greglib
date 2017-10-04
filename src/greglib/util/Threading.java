@@ -3,6 +3,7 @@ package greglib.util;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -121,8 +122,38 @@ public final class Threading {
         chunkAndThread(answers.length, ArrayFillThread.class, answers, func);
     }
 
+    /**
+     * Run a multithreaded method when you don't need the answer back.
+     * (For example, writing to the filesystem.)
+     * Supply a Consumer rather than a Function.
+     * @param max the maximum index to use
+     * @param func a consumer that takes an integer index and performs an action
+     */
+    public static void doThreaded(int max, Consumer<Integer> func) {
+        chunkAndThread(max, DoThread.class, func);
+    }
+
     public static <T> void fillArraysThreaded(List<T[]> answersList, Function<Integer, List<T>> func) {
         chunkAndThread(answersList.get(0).length, ArraysFillThread.class, answersList, func);
+    }
+
+    private static class DoThread extends IntRangeThread {
+        protected Consumer<Integer> func;
+
+        public DoThread() {}
+
+        @Override
+        public void initializeParams(Object[] args) {
+            func = (Consumer<Integer>) args[0];
+        }
+
+        @Override
+        public void run() {
+            for (int i = begin; i < end; i++) {
+                func.accept(i);
+            }
+            LOGGER.info(String.format("Finished from %d to %d", begin, end));
+        }
     }
 
     private static class ArrayFillThread<T> extends IntRangeThread {
