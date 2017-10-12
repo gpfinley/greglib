@@ -1,5 +1,6 @@
 package greglib.phrases;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -9,7 +10,7 @@ import java.util.logging.Logger;
  * Delimiter will always be a space in the internal representation
  * Created by gpfinley on 2/26/16.
  */
-public final class Phrase implements Iterable<String>, Comparable<Phrase> {
+public final class Phrase implements Iterable<String>, Comparable<Phrase>, Serializable {
 
     private static Logger LOGGER = Logger.getLogger(Phrase.class.getName());
 

@@ -2,6 +2,7 @@ package greglib.util;
 
 import greglib.phrases.Phrase;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -9,7 +10,7 @@ import java.util.*;
  * Space-efficient collocation storage and lookup.
  * Created by gpfinley on 10/11/16.
  */
-public class PhraseGraph {
+public class PhraseGraph implements Serializable {
 
     private final Map<String, Object> graph;
 

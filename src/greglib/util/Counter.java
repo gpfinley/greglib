@@ -1,13 +1,16 @@
 package greglib.util;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * Counter class. Behaves like a map with fast increment and decrement methods.
+ *
  * Created by gpfinley on 10/27/16.
  */
-public class Counter<T> implements Map<T, Integer> {
+public class Counter<T> implements Map<T, Integer>, Serializable {
 
     private final Map<T, MutableInt> counts;
 
@@ -139,7 +142,7 @@ public class Counter<T> implements Map<T, Integer> {
         return counts.toString();
     }
 
-    private static class MutableInt {
+    private static class MutableInt implements Serializable {
         private int value;
         public MutableInt(int value) {
             this.value = value;
@@ -178,7 +181,7 @@ public class Counter<T> implements Map<T, Integer> {
         }
     }
 
-    private class Entry implements Map.Entry<T, Integer> {
+    private class Entry implements Map.Entry<T, Integer>, Serializable {
         private Map.Entry<T, MutableInt> entry;
 
         Entry(Map.Entry<T, MutableInt> entry) {
