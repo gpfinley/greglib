@@ -66,7 +66,14 @@ public class Counter<T> implements Map<T, Integer>, Serializable {
     public TreeMap<T, Integer> createSortedMap() {
         TreeMap<T, Integer> map = new TreeMap<>((x, y) -> {
             int comp = get(x).compareTo(get(y));
-            return comp == 0 ? ((Comparable) x).compareTo(y) : comp;
+            if (comp != 0) {
+                return comp;
+            }
+            try {
+                return ((Comparable) x).compareTo(y);
+            } catch (ClassCastException e) {
+                return x.toString().compareTo(y.toString());
+            }
         });
         counts.forEach((k, v) -> map.put(k, v.get()));
         return map;

@@ -14,8 +14,10 @@ public final class Threading {
 
     private final static Logger LOGGER = Logger.getLogger(Threading.class.getName());
 
+    private static boolean threadLog;
     private static int nThreads;
     static {
+        threadLog = Boolean.parseBoolean(System.getProperties().getProperty("threadlog"));
         String nThreadsStr = System.getProperties().getProperty("threads");
         if (nThreadsStr != null) {
             nThreads = Integer.parseInt(nThreadsStr);
@@ -152,7 +154,9 @@ public final class Threading {
             for (int i = begin; i < end; i++) {
                 func.accept(i);
             }
-            LOGGER.info(String.format("Finished from %d to %d", begin, end));
+            if (threadLog) {
+                LOGGER.info(String.format("Finished from %d to %d", begin, end));
+            }
         }
     }
 
@@ -173,7 +177,9 @@ public final class Threading {
             for (int i = begin; i < end; i++) {
                 answers[i] = func.apply(i);
             }
-            LOGGER.info(String.format("Finished from %d to %d", begin, end));
+            if (threadLog) {
+                LOGGER.info(String.format("Finished from %d to %d", begin, end));
+            }
         }
     }
 
@@ -199,7 +205,9 @@ public final class Threading {
                     answersList.get(output)[i] = theseAnswers.get(output);
                 }
             }
-            LOGGER.info(String.format("Finished from %d to %d", begin, end));
+            if (threadLog) {
+                LOGGER.info(String.format("Finished from %d to %d", begin, end));
+            }
         }
     }
 
