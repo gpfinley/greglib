@@ -1,0 +1,1 @@
+mvn clean install && mv target/greglib-1.0-SNAPSHOT-jar-with-dependencies.jar greglib.jar && cp greglib.jar /home/greg/emrai/lib/greglib.jar && cp greglib.jar /home/greg/annotationservice/lib/greglib.jar
