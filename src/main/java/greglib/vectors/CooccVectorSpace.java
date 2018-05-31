@@ -1,10 +1,9 @@
 package greglib.vectors;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import greglib.util.NonblockingBufferedReader;
+
+import java.io.*;
+import java.util.*;
 
 /**
  * Handles the dictionary for a word co-occurrence vector space
@@ -48,6 +47,30 @@ public class CooccVectorSpace implements Serializable {
 
     public int size() {
         return allWords.size();
+    }
+
+    // very simple serialization
+
+    public void serialize(OutputStream out) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+        writer.write(String.valueOf(allWords.size()));
+        writer.write("\n");
+        for (String word : allWords) {
+            writer.write(word);
+            writer.write("\n");
+        }
+        writer.flush();
+    }
+
+    public static CooccVectorSpace deserialize(InputStream in) throws IOException {
+        CooccVectorSpace space = new CooccVectorSpace();
+        NonblockingBufferedReader reader = new NonblockingBufferedReader(in);
+        String line = reader.readLine();
+        int size = Integer.parseInt(line);
+        for (int i=0; i<size; i++) {
+            space.addWord(reader.readLine().trim());
+        }
+        return space;
     }
 
 }

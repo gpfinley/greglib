@@ -1,12 +1,14 @@
 package greglib.vectors;
 
-import java.io.Serializable;
+import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
- * Simple class for handling sparse word co-occurrence greglib.vectors (using Double for values to deal with weighting, etc.)
+ * Simple class for handling sparse word co-occurrence vectors (using Double for values to deal with weighting, etc.)
  *
  * Created by gpfinley on 4/14/16.
  */
@@ -37,7 +39,6 @@ public class CooccVector implements Serializable {
         return space.size();
     }
 
-    // ERASE THIS FUNCTION IF DESERIALIZING VECTORS FROM DEATHSTAR
     /**
      * Increment the count for this word (and update the dictionary in the associated space if necessary)
      */
@@ -129,5 +130,42 @@ public class CooccVector implements Serializable {
     @Override
     public String toString() {
         return vector.toString();
+    }
+
+    public void applyElementwise(Function<Double, Double> function) {
+        vector.forEach((i, d) -> vector.put(i, function.apply(d)));
+    }
+
+    public void hadamard(CooccVector other) {
+        vector.forEach((i, d) -> vector.put(i, d * other.get(i)));
+    }
+
+    // SERIALIZATION FORMAT: int map size, then int-double pairs, in binary
+
+    public void serialize(OutputStream out) throws IOException {
+        byte[] bytes = ByteBuffer.allocate(4).putInt(vector.size()).array();
+        out.write(bytes);
+        for (Map.Entry<Integer, Double> entry : vector.entrySet()) {
+            byte[] intBytes = ByteBuffer.allocate(4).putInt(entry.getKey()).array();
+            byte[] doubleBytes = ByteBuffer.allocate(8).putDouble(entry.getValue()).array();
+            out.write(intBytes);
+            out.write(doubleBytes);
+        }
+    }
+
+    public static CooccVector deserialize(InputStream in, CooccVectorSpace space) throws IOException {
+        CooccVector vector = new CooccVector(space);
+        byte[] four = new byte[4];
+        byte[] eight = new byte[8];
+        in.read(four);
+        int size = ByteBuffer.wrap(four).getInt();
+        for (int i=0; i<size; i++) {
+            in.read(four);
+            in.read(eight);
+            int index = ByteBuffer.wrap(four).getInt();
+            double value = ByteBuffer.wrap(eight).getDouble();
+            vector.vector.put(index, value);
+        }
+        return vector;
     }
 }

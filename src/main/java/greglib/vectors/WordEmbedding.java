@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * Class for representing dense word greglib.embeddings and performing computations on them.
+ * Class for representing dense word embeddings and performing computations on them.
  * Created by gpfinley on 3/14/16.
  */
 public class WordEmbedding implements Serializable {

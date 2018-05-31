@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Represents a collection of terms (including greglib.phrases) and word greglib.embeddings for them
+ * Represents a collection of terms (including phrases) and word embeddings for them
  * Created by gpfinley on 3/14/16.
  */
 public class Embeddings implements Iterable<String>, Serializable {

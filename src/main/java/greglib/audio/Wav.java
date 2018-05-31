@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
+ * Utility methods for working with Microsoft .wav files.
+ *
  * Created by greg on 5/24/18.
  */
 public class Wav {
