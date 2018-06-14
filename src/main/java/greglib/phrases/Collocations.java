@@ -150,14 +150,15 @@ public class Collocations implements Iterable<Phrase> {
                             builder.append("_");
                             builder.append(words[k]);
                         }
-                        i = longestPhraseEnd;
+                        i = longestPhraseEnd-1;
                     } else {
                         builder.append(replacements.get(longest));
+                        i += longest.size() - 1;
                     }
                 } else {
                     builder.append(words[i]);
                 }
-                if (i < words.length) builder.append(" ");
+                if (i < words.length-1) builder.append(" ");
             }
             builder.append("\n");
         }
