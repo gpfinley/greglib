@@ -17,6 +17,8 @@ public class Collocations implements Iterable<Phrase> {
 
     private Map<Phrase, Double> collocationScores;
 
+    private Map<Phrase, String> replacements;
+
     // a directed graph made up of nested HashMaps
     // Stores all collocations in a format that is convenient when applying them to text
     private final PhraseGraph phraseGraph;
@@ -40,6 +42,11 @@ public class Collocations implements Iterable<Phrase> {
     public Collocations(Map<Phrase, Double> collocationScores) {
         this.collocationScores = collocationScores;
         phraseGraph = new PhraseGraph();
+    }
+
+    public Collocations useReplacements(Map<Phrase, String> replacements) {
+        this.replacements = replacements;
+        return this;
     }
 
     /**
@@ -136,13 +143,17 @@ public class Collocations implements Iterable<Phrase> {
                 if (words[i].length() == 0) continue;
                 Phrase longest = phraseGraph.getLongestPhraseFrom(words, i);
                 if (longest != null) {
-                    int longestPhraseEnd = i + longest.size();
-                    builder.append(words[i]);
-                    for (int k = i + 1; k < longestPhraseEnd; k++) {
-                        builder.append("_");
-                        builder.append(words[k]);
+                    if (replacements == null || !replacements.containsKey(longest)) {
+                        int longestPhraseEnd = i + longest.size();
+                        builder.append(words[i]);
+                        for (int k = i + 1; k < longestPhraseEnd; k++) {
+                            builder.append("_");
+                            builder.append(words[k]);
+                        }
+                        i = longestPhraseEnd;
+                    } else {
+                        builder.append(replacements.get(longest));
                     }
-                    i = longestPhraseEnd;
                 } else {
                     builder.append(words[i]);
                 }

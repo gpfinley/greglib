@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Apps meant to be configured with Ini fields or CLAs should extend this class.
@@ -70,7 +71,14 @@ public abstract class ConfigurableApp {
         thisAndSuperclassFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         Class superClazz = clazz.getSuperclass();
         while (superClazz != null) {
-            thisAndSuperclassFields.addAll(Arrays.asList(superClazz.getDeclaredFields()));
+            // Don't add duplicate fields from superclasses (i.e., effectively allow @Config annotations to override)
+            Set<String> subclassFieldNames = thisAndSuperclassFields.stream()
+                    .map(Field::getName)
+                    .collect(Collectors.toSet());
+            Arrays.stream(superClazz.getDeclaredFields())
+                    .filter(f -> !subclassFieldNames.contains(f.getName()))
+                    .forEach(thisAndSuperclassFields::add);
+//            thisAndSuperclassFields.addAll(Arrays.asList(superClazz.getDeclaredFields()));
             superClazz = superClazz.getSuperclass();
         }
         return thisAndSuperclassFields;

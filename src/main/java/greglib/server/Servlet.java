@@ -19,16 +19,23 @@ import javax.servlet.http.HttpServletResponse;
 public class Servlet extends HttpServlet implements Chainable {
 
     @Config(name = "service", doc = "Name of class extending greglib.server.Service to use", required = true)
-    Service service;
+    protected Service service;
 
-    public Servlet() {}
+    // TODO: find a more elegant way to do this than setting a static variable!
+    public static Service staticService;
+
+    public Servlet() { }
 
     public Servlet(Service service) {
-        this.service = service;
+        staticService = service;
     }
 
     @Override
-    public void initialize() { }
+    public void initialize() {
+        if (service != null) {
+            staticService = service;
+        }
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -40,7 +47,7 @@ public class Servlet extends HttpServlet implements Chainable {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/json");
         String content = request.getReader().lines().collect(Collectors.joining());
-        String result = service.post(content);
+        String result = staticService.post(content);
         PrintWriter writer = response.getWriter();
         writer.write(result);
         writer.close();
