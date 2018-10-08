@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -208,6 +209,7 @@ public abstract class ConfigurableApp {
     private static final Map<Class, Function<String, ?>> constructorLikes = new HashMap<>();
     static {
         constructorLikes.put(Path.class, Paths::get);
+        constructorLikes.put(Pattern.class, Pattern::compile);
         constructorLikes.put(int.class, Integer::parseInt);
         constructorLikes.put(Integer.class, Integer::parseInt);
         constructorLikes.put(boolean.class, Boolean::parseBoolean);
