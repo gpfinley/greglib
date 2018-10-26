@@ -49,7 +49,7 @@ public abstract class ConfigurableApp {
         try {
             t = clazz.getConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Class has no default constructor (should not happen)");
+            throw new RuntimeException(clazz.getName() + ": Class has no default constructor (should not happen)");
         }
         t.LOGGER = Logger.getLogger(t.getClass().getName());
         t.LOGGER.info(ini.toString());
@@ -79,7 +79,6 @@ public abstract class ConfigurableApp {
             Arrays.stream(superClazz.getDeclaredFields())
                     .filter(f -> !subclassFieldNames.contains(f.getName()))
                     .forEach(thisAndSuperclassFields::add);
-//            thisAndSuperclassFields.addAll(Arrays.asList(superClazz.getDeclaredFields()));
             superClazz = superClazz.getSuperclass();
         }
         return thisAndSuperclassFields;
@@ -113,7 +112,7 @@ public abstract class ConfigurableApp {
                     try {
                         field.setAccessible(true);
                         if (value != null) {
-                            field.set(t, getObject(field.getType(), value));
+                            field.set(t, getObject(field.getType(), value, ini));
                         }
                     } catch (IllegalAccessException e) {
                         throw new ConfigException(e);
@@ -174,7 +173,7 @@ public abstract class ConfigurableApp {
         return getInstance(clazz, ini);
     }
 
-    private static <T> T getObject(Class<T> clazz, String value) throws ConfigException {
+    private static <T> T getObject(Class<T> clazz, String value, Ini ini) throws ConfigException {
         if (clazz.equals(String.class)) {
             return (T) value;
         }
@@ -188,7 +187,13 @@ public abstract class ConfigurableApp {
             Class<?> subClazz = Class.forName(value);
             if (clazz.isAssignableFrom(subClazz)) {
                 try {
-                    return (T) subClazz.getDeclaredConstructor().newInstance();
+                    T t = (T) subClazz.getDeclaredConstructor().newInstance();
+                    // Fill in further configurable values if any are provided for this class
+                    //      (although they would not have shown up in the help message)
+                    if (ConfigurableApp.class.isAssignableFrom(subClazz)) {
+                        fillFieldValues(t, ini, ((ConfigurableApp) t).getIniSection());
+                    }
+                    return t;
                 } catch (ReflectiveOperationException e) {
                     throw new ConfigException("Cannot instantiate an object of class " + value);
                 }
