@@ -26,7 +26,7 @@ public class TomcatServer extends ConfigurableApp {
     @Config(name = "port", doc = "Port to run server on")
     private int port = 5000;
 
-    @ChainConfig
+    @ChainConfig(required = true)
     protected Servlet servlet;
 
     public void run() {

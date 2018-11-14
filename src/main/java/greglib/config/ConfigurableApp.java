@@ -26,8 +26,15 @@ public abstract class ConfigurableApp {
 
     protected Logger LOGGER;
 
+    private static final int indentWidth = 2;
+
     // Should return the name of the ini config section to use
     protected abstract String getIniSection();
+
+    /**
+     * String prefix for any arguments to configure this object (almost always empty)
+     */
+    protected String argumentPrefix = "";
 
     /**
      * The application's work should be done here.
@@ -44,17 +51,18 @@ public abstract class ConfigurableApp {
         return IniAndArgumentParser.parseIniAndArgs(clazz, section, args);
     }
 
-    protected static <T extends ConfigurableApp> T getInstance(Class<T> clazz, Ini ini) {
+    protected static <T extends ConfigurableApp> T getInstance(Class<T> clazz, Ini ini, String prefix) {
         T t;
         try {
             t = clazz.getConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(clazz.getName() + ": Class has no default constructor (should not happen)");
         }
+        t.argumentPrefix = prefix;
         t.LOGGER = Logger.getLogger(t.getClass().getName());
         t.LOGGER.info(ini.toString());
         try {
-            fillFieldValues(t, ini, t.getIniSection());
+            fillFieldValues(t, ini, t.getIniSection(), prefix);
         } catch (ConfigException e) {
             System.out.println(getUsageSummary(clazz));
             throw new RuntimeException(e);
@@ -86,23 +94,24 @@ public abstract class ConfigurableApp {
 
     /**
      *
-     * @param t
+     * @param t an instantiated object to apply configuration to
      * @param ini
      * @param iniSection
      * @param <T>
      * @return false if the (chained) object could not be properly configured
      * @throws ConfigException
      */
-    private static <T> boolean fillFieldValues(T t, Ini ini, String iniSection) throws ConfigException {
+    private static <T> boolean fillFieldValues(T t, Ini ini, String iniSection, String prefix) throws ConfigException {
         Class clazz = t.getClass();
         for (Field field : getThisAndSuperclassFields(clazz)) {
             for (Annotation annotation : field.getDeclaredAnnotations()) {
                 if (annotation instanceof Config) {
                     Config a = (Config) annotation;
-                    String value = ini.get(iniSection, a.name());
+                    String prefixedName = prefix + a.name();
+                    String value = ini.get(iniSection, prefixedName);
                     if (a.required() && value == null) {
                         if (ConfigurableApp.class.isAssignableFrom(t.getClass())) {
-                            throw new ConfigException("Parameter " + a.name() + " is required!");
+                            throw new ConfigException("Parameter '" + prefixedName + "' is required!");
                         } else {
                             // If this was just a chainable object, set it to null
                             // (this obj will be null on the obj that has it as a member)
@@ -120,14 +129,15 @@ public abstract class ConfigurableApp {
                 } else if (annotation instanceof ChainConfig) {
 
                     field.setAccessible(true);
+                    String chainedPrefix = ((ChainConfig) annotation).prefix();
                     try {
                         if (ConfigurableApp.class.isAssignableFrom(field.getType())) {
                             // If a ConfigurableApp is chained, treat it just like any other.
-                            field.set(t, getInstance((Class<? extends ConfigurableApp>) field.getType(), ini));
+                            field.set(t, getInstance((Class<? extends ConfigurableApp>) field.getType(), ini, chainedPrefix));
                         } else {
                             Object obj = field.getType().newInstance();
                             // If not, just loop through its Config (or ChainConfig) fields and keep the same iniSection
-                            if (!fillFieldValues(obj, ini, iniSection)) {
+                            if (!fillFieldValues(obj, ini, iniSection, chainedPrefix)) {
                                 if (((ChainConfig) annotation).required()) {
                                     throw new ConfigException(field.getType() + " needs to be configured (check its fields)");
                                 }
@@ -158,7 +168,7 @@ public abstract class ConfigurableApp {
         }
         t.LOGGER = Logger.getLogger(t.getClass().getName());
         for (String arg : args) {
-            if (arg.equals("help") || arg.equals("-h") || arg.equals("--help")) {
+            if (arg.equals("help") || arg.equals("-h") || arg.equals("--help") || arg.equals("-help")) {
                 System.out.println(getUsageSummary(clazz));
                 System.exit(1);
             }
@@ -170,7 +180,7 @@ public abstract class ConfigurableApp {
             System.out.println(getUsageSummary(clazz));
             throw new RuntimeException(e);
         }
-        return getInstance(clazz, ini);
+        return getInstance(clazz, ini, "");
     }
 
     private static <T> T getObject(Class<T> clazz, String value, Ini ini) throws ConfigException {
@@ -191,7 +201,8 @@ public abstract class ConfigurableApp {
                     // Fill in further configurable values if any are provided for this class
                     //      (although they would not have shown up in the help message)
                     if (ConfigurableApp.class.isAssignableFrom(subClazz)) {
-                        fillFieldValues(t, ini, ((ConfigurableApp) t).getIniSection());
+                        ConfigurableApp app = (ConfigurableApp) t;
+                        fillFieldValues(app, ini, app.getIniSection(), app.argumentPrefix);
                     }
                     return t;
                 } catch (ReflectiveOperationException e) {
@@ -254,7 +265,7 @@ public abstract class ConfigurableApp {
                 .append("\n")
                 .append("CONFIGURABLE FIELDS:\n");
 
-        addAnnotationHelpToBuilder(summary, clazz, t, 0);
+        addAnnotationHelpToBuilder(summary, clazz, t, 0, "");
 
         summary.append("\n(* = required)");
 
@@ -268,8 +279,11 @@ public abstract class ConfigurableApp {
      * Will recurse through ChainConfig annotations.
      * @param summary a StringBuilder with a summary being built
      * @param clazz a class to loop through fields and annotations
+     * @param object
+     * @param indent
+     * @param prefix
      */
-    private static void addAnnotationHelpToBuilder(StringBuilder summary, Class clazz, Object object, int indent) {
+    private static void addAnnotationHelpToBuilder(StringBuilder summary, Class clazz, Object object, int indent, String prefix) {
         StringBuilder thisSummary = new StringBuilder();
         for (Field field : getThisAndSuperclassFields(clazz)) {
             for (Annotation annotation : field.getDeclaredAnnotations()) {
@@ -285,7 +299,7 @@ public abstract class ConfigurableApp {
                     if (a.required()) {
                         thisSummary.append("*");
                     }
-                    thisSummary.append(a.name())
+                    thisSummary.append(prefix + a.name())
                             .append(" (")
                             .append(field.getType().getSimpleName())
                             .append("), default = ")
@@ -315,7 +329,11 @@ public abstract class ConfigurableApp {
                             }
                             if (chainedObject != null) {
                                 thisSummary.append(field.getType().getName()).append(":\n");
-                                addAnnotationHelpToBuilder(thisSummary, fieldClass, chainedObject, indent+4);
+                                addAnnotationHelpToBuilder(thisSummary,
+                                        fieldClass,
+                                        chainedObject,
+                                        indent+ indentWidth,
+                                        ((ChainConfig) annotation).prefix());
                             }
                         }
                     } catch (IllegalAccessException e) {

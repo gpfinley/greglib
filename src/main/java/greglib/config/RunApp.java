@@ -24,8 +24,8 @@ public class RunApp {
 
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.out.println("Usage: 'java -jar EMRAI.jar CLASSNAME PARAMETERS...'");
-            System.out.println("       'java -jar EMRAI.jar CLASSNAME help' for a list of configurable parameters");
+            System.out.println("Usage: 'java -jar <*.jar> CLASSNAME PARAMETERS...'");
+            System.out.println("       'java -jar <*.jar> CLASSNAME help' for a list of configurable parameters");
             System.exit(1);
         }
         String className = args[0];

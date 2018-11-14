@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ChainConfig {
     boolean required() default false;
+    String prefix() default "";
 }
