@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * Generic way to run a configurable apps.
  * Preferred style:
- * java -jar JARNAME CLASSNAME [configfile.ini] -option value1 value2 -otheroption value ...
+ * java -jar JARNAME CLASSNAME [configfile.ini] [-option value1 value2 -otheroption value ...]
  * Alternatively:
  * java -jar JARNAME CLASSNAME [configfile.ini] [option=value otheroption=value ...]
  *
@@ -54,7 +54,7 @@ public class RunApp {
      * @param args the normal command-line arguments following that class name
      */
     public static void runConfigurableApp(Class<? extends ConfigurableApp> clazz, String[] args) {
-        ConfigurableApp.getInstance(clazz, args).run();
+        ConfigurableApp.getConfiguredInstance(clazz, args).run();
     }
 
     /**
