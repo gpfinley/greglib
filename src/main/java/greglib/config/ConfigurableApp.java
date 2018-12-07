@@ -172,7 +172,7 @@ public abstract class ConfigurableApp {
                     // Any ChainConfig-ed annotation must either be a ConfigurableApp or implement Chainable
                     field.setAccessible(true);
                     Class fieldClass = field.getType();
-                    String chainedPrefix = ((ChainConfig) annotation).prefix();
+                    String chainedPrefix = prefix + ((ChainConfig) annotation).prefix();
                     try {
                         if (ConfigurableApp.class.isAssignableFrom(fieldClass)) {
                             // If a ConfigurableApp is chained, treat it just like any other.
@@ -373,7 +373,7 @@ public abstract class ConfigurableApp {
                                     fieldClass,
                                     chainedObject,
                                     indent + indentWidth,
-                                    ((ChainConfig) annotation).prefix());
+                                    prefix + ((ChainConfig) annotation).prefix());
                         }
                     } catch (ReflectiveOperationException e) {
                         throw new RuntimeException(
